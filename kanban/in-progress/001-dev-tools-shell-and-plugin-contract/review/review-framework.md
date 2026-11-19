@@ -2,19 +2,30 @@
 
 **Date:** 2026-11-20
 **Host task:** kanban/in-progress/001-dev-tools-shell-and-plugin-contract/
-**Diff scope:** branch `task/001-dev-tools-shell-and-plugin-contract` vs merge-base `3775e12` (master), commits through `61fe116`. 70 files, 3019 insertions, 122 deletions. Product commit `db48814`.
-**Plan / brief:** task.md Description, Decided, Requirements, Acceptance criteria, and `## Goal (implementer restatement)`.
-**Effort:** 3
+**Diff scope (round 1):** branch `task/001-dev-tools-shell-and-plugin-contract` vs merge-base `3775e12` (master), commits through `61fe116`. 70 files, 3019 insertions, 122 deletions. Product commit `db48814`.
+**Diff scope (round 2):** `61fe116..866423b`. Task record for M1, review artifacts from round 1, and mode-only `100755` on the seven test runfiles. 106 lines. Product code unchanged.
+**Plan / brief:** task.md Description, Decided, Requirements, Acceptance criteria, and `## Goal (implementer restatement)`. Round 2 re-checks M1 against that restatement and the original acceptance gate.
+**Effort:** round 1: 3 (general). Round 2: 1 (general).
 **Reviewer roster:** general
-**Session IDs:** Grok review `01a1f4ee-5c4a-7701-963a-4157b4eb8002` (2026-11-20). Implementer session was not reported.
+**Session IDs:** Round 1 Grok review `01a1f4ee-5c4a-7701-963a-4157b4eb8002` (2026-11-20). Round 2 Grok review `01a1f4fc-4f89-7b33-b906-a28dd361575c` (2026-11-20). Implementer session was not reported.
 
 ## Budget (by-diff)
+
+### Round 1
 
 - Lines changed: 3141
 - Effort: 3
 - TCB hits: none
 - Roster axes: general
 - Turn cap: 200 (--max-turns; cursor uncapped)
+
+### Round 2
+
+- Lines changed: 106
+- Effort: 1
+- TCB hits: none
+- Roster axes: general
+- Turn cap: 80 (--max-turns; cursor uncapped)
 
 ## Ground rules
 

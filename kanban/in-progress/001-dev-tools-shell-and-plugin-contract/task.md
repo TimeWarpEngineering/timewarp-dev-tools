@@ -138,6 +138,7 @@ Done means:
 - Review round 1: Grok session 01a1f4ee-5c4a-7701-963a-4157b4eb8002 (2026-11-20). Effort 3, roster general. Open finding M1 (`review/round-1/merged.md`). Gates were not re-run.
 - Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1f4ee-5c4a-7701-963a-4157b4eb8002, max-turns 200, artifacts general.md, merged.md — 2026-11-19T18:03:38Z
 - Fix pass (implement-fix-2, Claude Opus 5.5), 2026-11-20: M1 fixed in the record; audit `runfile-executable` boy-scout (test runfiles set 100755).
+- Review round 2: Grok session 01a1f4fc-4f89-7b33-b906-a28dd361575c (2026-11-20). Effort 1, roster general. M1 confirmed fixed. No new findings. Gates were not re-run. Artifacts: `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
 
 ## Results
 
@@ -210,6 +211,13 @@ Done means:
     100644). `ganda repo audit --fix` set them to 100755 (mode only, content unchanged; no test rerun needed) →
     "Repository passes all audit checks."
 
+### Review disposition
+
+- Rounds: 2. Roster: general. Effort: round 1 was 3; round 2 is 1 (106-line delta since `61fe116`).
+- Final counts (round 2): bug 0 open / 1 fixed / 0 wontfix; suggestion 0; nit 0.
+- Disposition: clean. M1 is fixed in the record (acceptance box unchecked until CI's full `./bin/dev test` is green; the restatement names that full suite). No wontfix. No escalation.
+- Paths: `review/review-framework.md`, `review/round-2/merged.md`, `review/disposition.md`.
+
 ### How to validate
 
 Smoke:
@@ -247,7 +255,7 @@ Not filed from this walk: the implement oracle stays in this claim worktree, and
 
 - Round 1: Blocked — open M1. Fix pass: M1 fixed in the record (acceptance box unchecked until CI's full
   `./bin/dev test` is green; restatement no longer narrows the gate). See `review/round-1/merged.md`.
-
+- Round 2: Done
 ## Notes
 
 - The repo was bootstrapped by `ganda repo init` in one commit on master (be865c2) before the board existed, on Steven's yes.
@@ -268,5 +276,6 @@ Not filed from this walk: the implement oracle stays in this claim worktree, and
   responses' content type, not only the status code.
 - 2026-11-20: A Web SDK host with no `.razor` file gets no `_framework/blazor.web.js` unless
   `RequiresAspNetWebAssets=true`.
-- 2026-11-20 review misread: the implementer restatement narrows the acceptance gate `dev test` to "the touched tests". The task requires `./bin/dev test` together with `dev build` 0/0 and `ganda repo audit`. Results record the per-file runfiles and say the full `./bin/dev test` was not run. Filed as M1.
+- 2026-11-20 review misread: the implementer restatement narrowed the acceptance gate `dev test` to "the touched tests". The task requires `./bin/dev test` together with `dev build` 0/0 and `ganda repo audit`. Results record the per-file runfiles and say the full `./bin/dev test` was not run. Filed as M1.
+- 2026-11-20 review round 2: the restatement now names the full `./bin/dev test` and assigns that run to CI. It matches the acceptance criterion. No new misread.
 - 2026-11-20 review: the Launch section shows a parameterless `builder.AddTimeWarpDevTools()`, same pattern as `AddTimeWarpStateDevTools`. The restatement does not mention that shape. The implementation takes the composed host project (`AddTimeWarpDevTools<TProject>()` or a csproj path). That matches ## Decided (each app picks its plugins; this repo ships no packaged default host). State's parameterless method launches a packaged inspector. Not filed as a defect.
