@@ -52,6 +52,7 @@ host process; `--capabilities` lists `run`; readme updated; build 0/0 and audit 
 - Created: a599aa96-c546-4a01-b756-fd6a6134bce7 (2026-11-19)
 - Spec written: a599aa96-c546-4a01-b756-fd6a6134bce7 (2026-11-20), on Steven's "yes file the dev run task".
 - Implemented: ganda task work implement oracle (2026-11-20): run command, readme, gates, by-hand check.
+- Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-19T18:51:48Z
 
 ## Results
 
