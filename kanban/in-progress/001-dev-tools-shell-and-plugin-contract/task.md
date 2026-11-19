@@ -85,7 +85,8 @@ Working names; folders are kebab-case under `source/`.
 - [x] bUnit tests for navigation and the error panel; one closed-box check that the shell loads in a browser.
 - [x] The three packages pack (`dotnet pack` produces them); nothing is published.
 - [x] CI collects code coverage, clearing the `ci-code-coverage` audit warning left by `ganda repo init`.
-- [x] `dev build` 0/0, `dev test`, `ganda repo audit` green.
+- [ ] `dev build` 0/0, `dev test`, `ganda repo audit` green. (`dev build` and `ganda repo audit` are green here.
+  The full `./bin/dev test` runs in CI on the pull request; check this box when that run is green. See ## Results → Gates.)
 
 ## Goal (implementer restatement)
 
@@ -109,7 +110,9 @@ Done means:
 - Tests: contract isolation, a test-only plugin in a test host (nav, route, service, endpoint), the error
   panel (bUnit), navigation (bUnit), one closed-box browser load of the standalone host.
 - The three packages pack; nothing is published. CI collects and uploads coverage.
-- `dev build` 0/0, the touched tests, and `ganda repo audit` pass.
+- `dev build` 0/0, the full `./bin/dev test`, and `ganda repo audit` are green. Under `ganda task work` the oracle
+  runs `dev build`, each test file as a runfile, and the audit; the full `./bin/dev test` (the MTP collection
+  project) is CI's run on the pull request, and the merge waits for it.
 - Docs: one page on writing a plugin and a real readme. Follow-ups are named (filed or listed).
 
 ## Checklist
@@ -132,6 +135,9 @@ Done means:
   bumped TimeWarp.State and TimeWarp.State.Blazor 12.0.0-beta.17 → beta.19 and wrote the local
   (ignored) `.vscode/settings.json` window icon. `ci-code-coverage` now passes.
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-19T17:50:23Z
+- Review round 1: Grok session 01a1f4ee-5c4a-7701-963a-4157b4eb8002 (2026-11-20). Effort 3, roster general. Open finding M1 (`review/round-1/merged.md`). Gates were not re-run.
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1f4ee-5c4a-7701-963a-4157b4eb8002, max-turns 200, artifacts general.md, merged.md — 2026-11-19T18:03:38Z
+- Fix pass (implement-fix-2, Claude Opus 5.5), 2026-11-20: M1 fixed in the record; audit `runfile-executable` boy-scout (test runfiles set 100755).
 
 ## Results
 
@@ -188,8 +194,21 @@ Done means:
   fix above: "Repository passes all audit checks."
 - `dotnet pack timewarp-dev-tools.slnx -c Release --no-build` → TimeWarp.DevTools.Abstractions, .Shell, .Hosting
   1.0.0-beta.1 in `artifacts/packages` (not published).
-- Full `./bin/dev test` not run here (CI runs it). One collection-project run with
-  `--filter-class DevToolsContract_` and the coverage flags wrote `artifacts/coverage/coverage.cobertura.xml`.
+- Full `./bin/dev test` (the MTP collection project with the Cobertura flags): **not run** in this walk. The
+  `ganda task work` oracle forbids the full suite locally; CI's `workflow` job runs it on the pull request and
+  uploads `artifacts/coverage`, and the merge waits for green CI. The acceptance box for `dev test` stays unchecked
+  until that run is green (review round 1 M1).
+- What the local record does cover: every test file in the collection was run once as a standalone runfile (the
+  seven lines above, 33 tests), and `./bin/dev build` compiles the collection project
+  (`tests/timewarp-dev-tools-tests/timewarp-dev-tools-tests.csproj` is in `timewarp-dev-tools.slnx`) under
+  `JARIBU_MULTI` with 0 warnings and 0 errors. One earlier collection-project run with
+  `--filter-class DevToolsContract_` wrote `artifacts/coverage/coverage.cobertura.xml`; that is not a full-suite
+  result.
+- Fix pass for round 1 (2026-11-20, no product code edit):
+  - `./bin/dev build` → 0 warnings, 0 errors (includes `timewarp-dev-tools-tests`).
+  - `ganda repo audit` → 1 failure: `runfile-executable` (the seven test runfiles have a shebang but were committed
+    100644). `ganda repo audit --fix` set them to 100755 (mode only, content unchanged; no test rerun needed) →
+    "Repository passes all audit checks."
 
 ### How to validate
 
@@ -224,6 +243,11 @@ Not filed from this walk: the implement oracle stays in this claim worktree, and
    Name undecided ("Mnara" suggested). Depends on timewarp-dev-tools 001.
 3. **timewarp-architecture 422** — repoint `## Depends on` from 335 to timewarp-dev-tools 001.
 
+## Review
+
+- Round 1: Blocked — open M1. Fix pass: M1 fixed in the record (acceptance box unchecked until CI's full
+  `./bin/dev test` is green; restatement no longer narrows the gate). See `review/round-1/merged.md`.
+
 ## Notes
 
 - The repo was bootstrapped by `ganda repo init` in one commit on master (be865c2) before the board existed, on Steven's yes.
@@ -244,3 +268,5 @@ Not filed from this walk: the implement oracle stays in this claim worktree, and
   responses' content type, not only the status code.
 - 2026-11-20: A Web SDK host with no `.razor` file gets no `_framework/blazor.web.js` unless
   `RequiresAspNetWebAssets=true`.
+- 2026-11-20 review misread: the implementer restatement narrows the acceptance gate `dev test` to "the touched tests". The task requires `./bin/dev test` together with `dev build` 0/0 and `ganda repo audit`. Results record the per-file runfiles and say the full `./bin/dev test` was not run. Filed as M1.
+- 2026-11-20 review: the Launch section shows a parameterless `builder.AddTimeWarpDevTools()`, same pattern as `AddTimeWarpStateDevTools`. The restatement does not mention that shape. The implementation takes the composed host project (`AddTimeWarpDevTools<TProject>()` or a csproj path). That matches ## Decided (each app picks its plugins; this repo ships no packaged default host). State's parameterless method launches a packaged inspector. Not filed as a defect.
