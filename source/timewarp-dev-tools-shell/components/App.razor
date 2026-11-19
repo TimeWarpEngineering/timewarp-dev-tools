@@ -1,0 +1,28 @@
+@namespace TimeWarp.DevTools.Shell.Components
+
+@code {
+  // Assets[...] resolves the fingerprinted URL when the host calls MapStaticAssets.
+  // The host's scoped CSS bundle imports the shell's, FluentUI's, and every plugin library's bundle.
+  private static readonly string HostStylesheet =
+    (Assembly.GetEntryAssembly()?.GetName().Name ?? "TimeWarp.DevTools.Shell") + ".styles.css";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/" />
+  <link rel="stylesheet" href="@Assets["_content/TimeWarp.DevTools.Shell/devtools-tokens.css"]" />
+  <link rel="stylesheet" href="@Assets[HostStylesheet]" />
+  <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body data-theme="system">
+  <script src="@Assets["_content/TimeWarp.DevTools.Shell/devtools-theme.js"]"></script>
+  <Routes @rendermode="InteractiveServer" />
+  <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+
+</html>

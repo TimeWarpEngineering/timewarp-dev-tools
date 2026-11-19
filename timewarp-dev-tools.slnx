@@ -1,2 +1,11 @@
 <Solution>
+  <Folder Name="/source/">
+    <Project Path="source/timewarp-dev-tools-abstractions/timewarp-dev-tools-abstractions.csproj" />
+    <Project Path="source/timewarp-dev-tools-shell/timewarp-dev-tools-shell.csproj" />
+    <Project Path="source/timewarp-dev-tools-hosting/timewarp-dev-tools-hosting.csproj" />
+    <Project Path="source/timewarp-dev-tools-host/timewarp-dev-tools-host.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/timewarp-dev-tools-tests/timewarp-dev-tools-tests.csproj" />
+  </Folder>
 </Solution>

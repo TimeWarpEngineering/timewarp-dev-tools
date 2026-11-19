@@ -1,0 +1,36 @@
+@namespace TimeWarp.DevTools.Shell.Components
+@inherits TimeWarpStateComponent
+
+@code {
+  [Inject] private IDevToolsPluginRegistry Registry { get; set; } = null!;
+
+  /// <summary>Id of the plugin whose page is shown. Null when no plugin matched the route.</summary>
+  [Parameter] public string? ActivePluginId { get; set; }
+
+  /// <summary>The page body.</summary>
+  [Parameter] public RenderFragment? ChildContent { get; set; }
+
+  private ShellState ShellState => GetState<ShellState>();
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    await base.OnAfterRenderAsync(firstRender);
+    if (firstRender)
+    {
+      await ShellState.SyncTheme();
+    }
+  }
+}
+
+<CascadingValue Value="this" IsFixed="true">
+  <div class="devtools-shell">
+    <header class="devtools-header">
+      <a class="devtools-brand" href="" data-qa="product-name">@DevToolsShellInfo.ProductName</a>
+      <ThemeSwitch />
+    </header>
+    <PluginNav Plugins="Registry.Plugins" ActivePluginId="@ActivePluginId" />
+    <main class="devtools-content">
+      @ChildContent
+    </main>
+  </div>
+</CascadingValue>

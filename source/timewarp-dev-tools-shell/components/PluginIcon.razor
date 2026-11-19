@@ -1,0 +1,27 @@
+@namespace TimeWarp.DevTools.Shell.Components
+
+@code {
+  /// <summary>FluentUI icon name (Regular, size 20). Unknown names show the default icon.</summary>
+  [Parameter] public string? Name { get; set; }
+
+  private Icon Value = new Icons.Regular.Size20.Apps();
+
+  protected override void OnParametersSet() => Value = Resolve(Name);
+
+  /// <summary>The FluentUI icon for <paramref name="name"/>, or the Apps icon when there is none.</summary>
+  public static Icon Resolve(string? name)
+  {
+    if (!string.IsNullOrWhiteSpace(name))
+    {
+      IconInfo info = new() { Name = name, Size = IconSize.Size20, Variant = IconVariant.Regular };
+      if (info.TryGetInstance(out CustomIcon? icon) && icon is not null)
+      {
+        return icon;
+      }
+    }
+
+    return new Icons.Regular.Size20.Apps();
+  }
+}
+
+<FluentIcon Value="@Value" />

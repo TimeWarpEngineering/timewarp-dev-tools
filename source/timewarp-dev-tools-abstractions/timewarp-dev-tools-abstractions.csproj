@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Title>TimeWarp.DevTools.Abstractions</Title>
+    <Description>Plugin contract for TimeWarp DevTools: a plugin's id, name, icon, root component, services, and endpoints.</Description>
+    <PackageId>TimeWarp.DevTools.Abstractions</PackageId>
+    <AssemblyName>TimeWarp.DevTools.Abstractions</AssemblyName>
+    <RootNamespace>TimeWarp.DevTools</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageTags>TimeWarp; DevTools; Blazor; Plugin</PackageTags>
+  </PropertyGroup>
+
+  <!-- The contract references ASP.NET Core only. No TimeWarp.State package and no plugin (a test asserts it). -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="readme.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

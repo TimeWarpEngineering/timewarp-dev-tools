@@ -3,6 +3,9 @@
 #endregion
 #region Design
 // Executes dotnet test for all tests in the repository
+// global.json selects the Microsoft Testing Platform runner. The run collects Cobertura coverage
+// (Microsoft.Testing.Extensions.CodeCoverage in the test project) at
+// artifacts/coverage/coverage.cobertura.xml, which the CI workflow uploads.
 // Handler stores Command and Ct as fields so private methods are zero-parameter
 // Streams test output via Amuru RunAsync by default; --quiet uses CaptureAsync
 #endregion
@@ -58,6 +61,8 @@ public sealed class TestCommand : ICommand<Unit>
       CommandResult command = DotNet.Test()
         .WithConfiguration("Release")
         .WithWorkingDirectory(RepoRoot)
+        .WithResultsDirectory("artifacts/coverage")
+        .WithArguments("--coverage", "--coverage-output-format", "cobertura", "--coverage-output", "coverage.cobertura.xml")
         .WithNoValidation()
         .Build();
 

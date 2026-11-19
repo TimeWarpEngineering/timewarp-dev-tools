@@ -1,0 +1,12 @@
+@namespace TimeWarp.DevTools.Shell.Components
+@inherits TimeWarpStateComponent
+
+@code {
+  private ShellState ShellState => GetState<ShellState>();
+
+  private Task CycleTheme() => ShellState.CycleTheme();
+}
+
+<FluentButton Appearance="ButtonAppearance.Subtle" OnClick="CycleTheme" data-qa="theme-switch" Title="Switch theme">
+  Theme: @ShellState.ThemeLabel(ShellState.Theme)
+</FluentButton>

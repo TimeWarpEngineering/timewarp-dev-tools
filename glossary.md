@@ -8,7 +8,10 @@ When an agent or reviewer has to ask what a term or acronym means, or sees one u
 
 | Term | Meaning |
 |------|---------|
-| _example_ | Replace this row with a repo-specific word and its one meaning. This example row is not a glossary entry. |
+| DevTools | TimeWarp DevTools, the shell that hosts developer tools as plugins. |
+| plugin | One tool inside the DevTools shell: a `DevToolsPlugin` with an id, a root component, and optional services and endpoints. |
+| shell | The DevTools chrome (header, plugin navigation, theme switch) and the routing that renders a plugin at `/{plugin-id}`. |
+| host | A web app that composes the shell and picks its plugins with `AddTimeWarpDevTools`. The standalone host is `source/timewarp-dev-tools-host`. |
 
 ## Acronyms
 

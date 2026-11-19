@@ -4,4 +4,32 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
-<ItemGroup><PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets></PackageVersion><PackageVersion Include="TimeWarp.Nuru" Version="4.0.0-beta.16" /><PackageVersion Include="TimeWarp.Amuru" Version="3.0.0-beta.10" /><PackageVersion Include="TimeWarp.Amuru.Tools" Version="3.0.0-beta.10" /><PackageVersion Include="TimeWarp.Terminal" Version="2.0.0-beta.2" /><PackageVersion Include="TimeWarp.Nuru.DevCli" Version="4.0.0-beta.16" /><PackageVersion Include="TimeWarp.SourceGenerators" Version="1.0.0-beta.17" /><PackageVersion Include="TimeWarp.Build.Tasks" Version="2.0.1-beta.1" /></ItemGroup></Project>
+<ItemGroup><PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0"><PrivateAssets>all</PrivateAssets><IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets></PackageVersion><PackageVersion Include="TimeWarp.Nuru" Version="4.0.0-beta.16" /><PackageVersion Include="TimeWarp.Amuru" Version="3.0.0-beta.10" /><PackageVersion Include="TimeWarp.Amuru.Tools" Version="3.0.0-beta.10" /><PackageVersion Include="TimeWarp.Terminal" Version="2.0.0-beta.2" /><PackageVersion Include="TimeWarp.Nuru.DevCli" Version="4.0.0-beta.16" /><PackageVersion Include="TimeWarp.SourceGenerators" Version="1.0.0-beta.17" /><PackageVersion Include="TimeWarp.Build.Tasks" Version="2.0.1-beta.1" /></ItemGroup>
+
+  <ItemGroup Label="Shell">
+    <!-- The shell's own UI state. TimeWarp.State depends on TimeWarp.Mediator; hosts run the generator. -->
+    <PackageVersion Include="TimeWarp.State" Version="12.0.0-beta.19" />
+    <PackageVersion Include="TimeWarp.State.Blazor" Version="12.0.0-beta.19" />
+    <PackageVersion Include="TimeWarp.Mediator" Version="15.0.0-beta.10" />
+    <PackageVersion Include="TimeWarp.Mediator.Generators" Version="15.0.0-beta.10" />
+    <PackageVersion Include="Microsoft.FluentUI.AspNetCore.Components" Version="5.0.1" />
+    <PackageVersion Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup Label="Aspire">
+    <PackageVersion Include="Aspire.Hosting" Version="17.0.0" />
+    <!-- Aspire 17 moved AddProject(name, path) to AddDotnetProject in this package. -->
+    <PackageVersion Include="Aspire.Hosting.Dotnet" Version="17.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Tests">
+    <PackageVersion Include="TimeWarp.Jaribu" Version="1.0.0-beta.18" />
+    <PackageVersion Include="TimeWarp.Jaribu.TestingPlatform" Version="1.0.0-beta.18" />
+    <PackageVersion Include="Shouldly" Version="4.3.0" />
+    <PackageVersion Include="bunit" Version="2.15.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="11.0.0" />
+    <PackageVersion Include="Microsoft.Playwright" Version="1.65.1" />
+    <!-- Coverage for the MTP test run (dev test passes the coverage flags). -->
+    <PackageVersion Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.12.0" />
+  </ItemGroup>
+</Project>

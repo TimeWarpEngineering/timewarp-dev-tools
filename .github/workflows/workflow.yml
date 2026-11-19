@@ -154,6 +154,14 @@ jobs:
             dotnet run --file tools/dev-cli/dev.cs -- workflow
           }
 
+      - name: coverage
+        if: always() && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release')
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: artifacts/coverage
+          if-no-files-found: warn
+
       - name: Upload Artifacts
         # Skip in release mode: release promotes the already-uploaded merge artifact.
         if: always() && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release')

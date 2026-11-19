@@ -1,0 +1,7 @@
+<Project>
+  <!-- A DevTools host often has no .razor file of its own. The shell's App.razor loads
+       _framework/blazor.web.js, which the Web SDK adds only when this is true. -->
+  <PropertyGroup>
+    <RequiresAspNetWebAssets Condition="'$(RequiresAspNetWebAssets)' == ''">true</RequiresAspNetWebAssets>
+  </PropertyGroup>
+</Project>

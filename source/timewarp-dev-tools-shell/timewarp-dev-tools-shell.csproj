@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <Title>TimeWarp.DevTools.Shell</Title>
+    <Description>Blazor Server shell for TimeWarp DevTools: chrome, plugin navigation and routing, per-plugin error boundary, and the built-in About plugin.</Description>
+    <PackageId>TimeWarp.DevTools.Shell</PackageId>
+    <AssemblyName>TimeWarp.DevTools.Shell</AssemblyName>
+    <RootNamespace>TimeWarp.DevTools.Shell</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageTags>TimeWarp; DevTools; Blazor; FluentUI</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" />
+    <PackageReference Include="TimeWarp.Mediator" />
+    <PackageReference Include="TimeWarp.State" />
+    <PackageReference Include="TimeWarp.State.Blazor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\timewarp-dev-tools-abstractions\timewarp-dev-tools-abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="readme.md" Pack="true" PackagePath="\" />
+    <None Include="buildTransitive/TimeWarp.DevTools.Shell.props" Pack="true" PackagePath="buildTransitive/" />
+  </ItemGroup>
+</Project>
