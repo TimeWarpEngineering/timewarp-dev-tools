@@ -60,6 +60,7 @@ host process; `--capabilities` lists `run`; readme updated; `dev build` 0/0, `de
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5), session not reported, max-turns 500, Done — 2026-11-19T18:51:48Z
 - Reviewer: grok session 01a1f526-975f-76f0-879f-dc45ea5530e3 (2026-11-20), effort 2, roster general, round 1. Open finding M1.
 - Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7, response model grok-4.7-build), session 01a1f526-975f-76f0-879f-dc45ea5530e3, max-turns 120, artifacts general.md, merged.md — 2026-11-19T18:59:46Z
+- Review round 2: Grok session 01a1f52f-797d-7153-9cd4-ec1b3d5f4d12 (2026-11-20). Effort 1, roster general. M1 confirmed fixed. No new findings. Gates were not re-run. Artifacts: `review/round-2/general.md`, `review/round-2/merged.md`, `review/disposition.md`.
 
 ## Results
 
@@ -114,12 +115,19 @@ Expect: the first lines print `DevTools: http://localhost:5290 …`, then build 
 The curl returns JSON with the `about` plugin. After Ctrl+C the prompt returns, `pgrep` finds no
 host, and nothing listens on 5290. `./bin/dev --capabilities | grep '"run"'` matches.
 
+### Review disposition
+
+- Rounds: 2. Roster: general. Effort: round 1 was 2; round 2 is 1 (102-line delta since `3e28183`).
+- Final counts (round 2): bug 0 open / 1 fixed / 0 wontfix; suggestion 0; nit 0.
+- Disposition: clean. M1 is fixed in the record (acceptance box unchecked until CI's full `./bin/dev test` is green; the restatement names that gate). No wontfix. No escalation.
+- Paths: `review/review-framework.md`, `review/round-2/merged.md`, `review/disposition.md`.
+
 ## Review
 
 - Round 1: Blocked — open M1
 - Fix pass for round 1 M1 (2026-11-20): acceptance line restored with `dev test`; the inaccurate
   "No product code changed" sentence replaced; covering test file `standalone-host.browser.cs` run (2/2).
-
+- Round 2: Done
 ## Notes
 
 - Checked 2026-11-20 on master after task 001 merged: `dotnet run --project source/timewarp-dev-tools-host` serves the page and `/_devtools/plugins` reports shell `1.0.0-beta.1` with the About plugin.
@@ -128,4 +136,5 @@ host, and nothing listens on 5290. `./bin/dev --capabilities | grep '"run"'` mat
 ## Learnings
 
 - Misread: `## Goal (implementer restatement)` done-when (build 0/0 and audit green) drops `dev test`. The original acceptance, in the task file at `8dbf57a` before the implement commit, required `dev build` 0/0, `dev test`, and `ganda repo audit` green. Round 1 M1.
+- 2026-11-20 review round 2: the restatement's done-when again names `dev build` 0/0, `dev test`, and `ganda repo audit`, and assigns the full suite to CI. It matches the acceptance criterion. No new misread.
 

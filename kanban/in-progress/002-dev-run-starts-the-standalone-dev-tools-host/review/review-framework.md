@@ -10,11 +10,11 @@
 
 ## Budget (by-diff)
 
-- Lines changed: 243
-- Effort: 2
+- Lines changed: 102
+- Effort: 1
 - TCB hits: none
 - Roster axes: general
-- Turn cap: 120 (--max-turns; cursor uncapped)
+- Turn cap: 80 (--max-turns; cursor uncapped)
 
 ## Ground rules
 
@@ -26,3 +26,9 @@
 - Exception: one targeted command may check one suspected bug; the finding names the command and the reason. A full build, full test run, or audit is never that command
 - A missing or thin recorded result is a finding, not a reason to run the gates
 - Prior rounds are immutable; new work goes in `round-(N+1)/`
+
+## Round 2
+
+**Date:** 2026-11-20
+**Diff scope:** delta `3e28183..95bf43e` (kitchen record for round 1 M1). Product code unchanged. The budget block above is the host's by-diff figure for this round (102 lines, effort 1, turn cap 80).
+**Session IDs:** reviewer grok `01a1f52f-797d-7153-9cd4-ec1b3d5f4d12` (2026-11-20).
