@@ -18,11 +18,19 @@ timewarp-state, the software-factory view in timewarp-ganda.
 ## Run the standalone host
 
 ```bash
-dotnet run --project source/timewarp-dev-tools-host
+./bin/dev run
 ```
 
-It listens on http://localhost:5290 and shows the About plugin. `GET /_devtools/plugins` returns
-the registered plugins as JSON. No AppHost and no inspected app are needed.
+It builds and starts the host in the foreground, from any directory in the repo, and stops on
+Ctrl+C. The host listens on http://localhost:5290 and shows the About plugin.
+`GET /_devtools/plugins` returns the registered plugins as JSON. No AppHost and no inspected app
+are needed.
+
+Without the dev CLI, run the project directly from the repo root:
+
+```bash
+dotnet run --project source/timewarp-dev-tools-host
+```
 
 ## Write a plugin
 
