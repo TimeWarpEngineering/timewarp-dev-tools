@@ -1,0 +1,164 @@
+name: CI/CD
+
+# Thin trigger. The pipeline lives in C# — invoke the runfile, not ./bin/dev.
+# bin/dev is gitignored, so a fresh CI checkout does not have it. The factory
+# `workflow` command self-installs first, then runs ./bin/dev clean|build|test.
+# push/PR: verify (and pack if the repo's workflow command packs).
+# release: promote the CI-built Packages-* artifact (no rebuild).
+# Publishing uses OIDC Trusted Publishing (no stored API key).
+on:
+  push:
+    branches: [ master, main ]
+    # A kanban-only push to master or main does not rebuild. Pull requests have
+    # no paths filter. The factory workflow command skips self-install, clean,
+    # build, and test on a pull request whose every path is a declared
+    # non-build path (PullRequestBuildClassifier from TimeWarp.Nuru.DevCli).
+    paths:
+      - 'source/**'
+      - 'tests/**'
+      - 'tools/**'
+      - '.github/workflows/**'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
+      - 'Directory.*.props'
+      - 'Directory.*.targets'
+      - 'nuget.config'
+      - 'global.json'
+      - '**/*.cs'
+      - '**/*.csproj'
+      - '**/*.slnx'
+      - '**/*.sln'
+      - 'msbuild/**'
+      - 'BannedSymbols.txt'
+      - 'install-ganda.cs'
+  pull_request:
+    # No paths filter: every pull request reports CI. The pipeline decides what to run.
+    branches: [ master, main, 'feature/**' ]
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Pipeline mode. merge = build and test only (default). release = break-glass publish; also requires confirm. probe = trusted-publishing check only (OIDC login, no build, no publish).'
+        type: choice
+        options:
+          - merge
+          - release
+          - probe
+        default: merge
+      confirm:
+        description: 'Break-glass guard: type the word release to confirm publishing when mode is release. Ignored otherwise.'
+        type: string
+        default: ''
+
+# Every run: step is pwsh (ganda repo audit: workflow-pwsh-shell). Hosted ubuntu, windows,
+# and macos runners and the self-hosted linux runner image all ship pwsh.
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  ci:
+    runs-on: ${{ (github.event.repository.private == true && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)) && fromJSON('["self-hosted", "linux"]') || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      id-token: write  # Required for NuGet Trusted Publishing (OIDC)
+      actions: read    # Release mode lists CI runs and downloads their package artifacts
+      # No packages scope. checkVersionConfig.feeds defaults to nuget.org.
+      # Add `packages: read` when that value includes github-packages.
+
+    steps:
+      - name: Create job-local directories
+        run: |
+          $temp = $env:RUNNER_TEMP
+          $directories = @(
+            "$temp/home"
+            "$temp/nuget/packages"
+            "$temp/nuget/http-cache"
+            "$temp/dotnet-cli"
+            "$temp/xdg/config"
+            "$temp/xdg/cache"
+            "$temp/xdg/data"
+          )
+          foreach ($directory in $directories) { New-Item -ItemType Directory -Force -Path $directory | Out-Null }
+          Set-Content -Path "$temp/gitconfig" -Value '' -NoNewline
+          @(
+            "HOME=$temp/home"
+            "NUGET_PACKAGES=$temp/nuget/packages"
+            "NUGET_HTTP_CACHE_PATH=$temp/nuget/http-cache"
+            "DOTNET_CLI_HOME=$temp/dotnet-cli"
+            "GIT_CONFIG_GLOBAL=$temp/gitconfig"
+            "XDG_CONFIG_HOME=$temp/xdg/config"
+            "XDG_CACHE_HOME=$temp/xdg/cache"
+            "XDG_DATA_HOME=$temp/xdg/data"
+          ) | Add-Content -Path $env:GITHUB_ENV
+          $shared = '/usr/share/dotnet'
+          $writable = $false
+          if (Test-Path -LiteralPath $shared -PathType Container) {
+            $probe = Join-Path $shared ".write-probe-$([guid]::NewGuid())"
+            try {
+              New-Item -ItemType File -Path $probe -ErrorAction Stop | Out-Null
+              Remove-Item -LiteralPath $probe
+              $writable = $true
+            } catch {
+              $writable = $false
+            }
+          }
+          if (-not $writable) {
+            $dotnet = "$env:RUNNER_TOOL_CACHE/dotnet"
+            New-Item -ItemType Directory -Force -Path $dotnet | Out-Null
+            Add-Content -Path $env:GITHUB_ENV -Value "DOTNET_INSTALL_DIR=$dotnet"
+          }
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history required for the release gate's tag/ancestor checks
+
+      # TimeWarp packages (Nuru 4.0.0-beta.12, Amuru 3, Terminal 2) ship net11.0 only.
+      # .NET 11 is at RC until GA, so the preview quality is needed to resolve it.
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '11.0.x'
+          dotnet-quality: 'preview'
+
+      - name: Validate break-glass confirmation
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm != 'release'
+        run: |
+          echo "::error::mode=release requires confirm=release. Refusing to run a break-glass release."
+          exit 1
+
+      - name: NuGet login (OIDC Trusted Publishing)
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release') || (github.event_name == 'workflow_dispatch' && inputs.mode == 'probe')
+        id: nuget-login
+        uses: nuget/login@v1
+        with:
+          user: TimeWarp.Enterprises
+
+      - name: Trusted publishing probe result
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'probe'
+        run: echo "Trusted publishing OK — OIDC exchange succeeded for this repo + workflow.yml. (A failure of the NuGet login step above means the policy is missing or misconfigured on NuGet.org.)"
+
+      - name: Run CI Pipeline
+        if: github.event_name != 'workflow_dispatch' || inputs.mode != 'probe'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUGET_LOGIN_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          BREAK_GLASS_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release' }}
+        run: |
+          if ($env:GITHUB_EVENT_NAME -eq 'release') {
+            dotnet run --file tools/dev-cli/dev.cs -- workflow --api-key $env:NUGET_LOGIN_API_KEY
+          } elseif ($env:BREAK_GLASS_RELEASE -eq 'true') {
+            dotnet run --file tools/dev-cli/dev.cs -- workflow --mode release --api-key $env:NUGET_LOGIN_API_KEY
+          } else {
+            dotnet run --file tools/dev-cli/dev.cs -- workflow
+          }
+
+      - name: Upload Artifacts
+        # Skip in release mode: release promotes the already-uploaded merge artifact.
+        if: always() && github.event_name != 'release' && !(github.event_name == 'workflow_dispatch' && inputs.mode == 'release' && inputs.confirm == 'release')
+        uses: actions/upload-artifact@v4
+        with:
+          name: Packages-${{ github.run_number }}
+          path: artifacts/packages/*.nupkg
+          if-no-files-found: ignore
