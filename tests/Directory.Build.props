@@ -1,0 +1,24 @@
+<Project>
+  <!-- Inherit repo-wide settings (analyzers, CPM, repository paths). -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Applies to the collection project and to each test file run alone as a runfile. -->
+  <PropertyGroup Label="Test Defaults">
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <IsPackable>false</IsPackable>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <!-- Tests find repo files from [CallerFilePath]. A CI build would map source paths to /_/. -->
+    <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup Label="Test global usings">
+    <Using Include="System.Runtime.CompilerServices" />
+    <Using Include="Shouldly" />
+    <Using Include="TimeWarp.Jaribu" />
+    <Using Include="TimeWarp.Jaribu.TestRunner" Static="true" />
+  </ItemGroup>
+</Project>

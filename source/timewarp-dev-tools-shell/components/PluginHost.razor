@@ -1,0 +1,31 @@
+@namespace TimeWarp.DevTools.Shell.Components
+
+@code {
+  /// <summary>The plugin to render.</summary>
+  [Parameter, EditorRequired] public DevToolsPlugin Plugin { get; set; } = null!;
+
+  /// <summary>Path below the plugin prefix.</summary>
+  [Parameter] public string? SubPath { get; set; }
+
+  private DevToolsPluginContext Context = null!;
+  private ErrorBoundary? Boundary;
+
+  protected override void OnParametersSet() => Context = new DevToolsPluginContext(Plugin, SubPath ?? "");
+
+  // Retry is component-local UI (it only re-renders the boundary), so it is not a state action.
+  private void Retry() => Boundary?.Recover();
+}
+
+@* DevToolsPage keys this component by plugin id, so another plugin always gets a fresh boundary. *@
+<div class="plugin-host" data-plugin-id="@Plugin.Id">
+  <ErrorBoundary @ref="Boundary">
+    <ChildContent>
+      <CascadingValue Value="Context">
+        <DynamicComponent Type="Plugin.RootComponent" />
+      </CascadingValue>
+    </ChildContent>
+    <ErrorContent Context="exception">
+      <PluginErrorPanel Plugin="Plugin" Exception="exception" OnRetry="Retry" />
+    </ErrorContent>
+  </ErrorBoundary>
+</div>

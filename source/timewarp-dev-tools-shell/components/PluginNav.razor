@@ -1,0 +1,29 @@
+@namespace TimeWarp.DevTools.Shell.Components
+
+@code {
+  /// <summary>Plugins in navigation order.</summary>
+  [Parameter, EditorRequired] public IReadOnlyList<DevToolsPlugin> Plugins { get; set; } = [];
+
+  /// <summary>Id of the plugin whose page is shown.</summary>
+  [Parameter] public string? ActivePluginId { get; set; }
+
+  private bool IsActive(DevToolsPlugin plugin) => string.Equals(plugin.Id, ActivePluginId, StringComparison.Ordinal);
+}
+
+<nav class="devtools-nav" aria-label="DevTools plugins" data-qa="plugin-nav">
+  <ul class="devtools-nav-list">
+    @foreach (DevToolsPlugin plugin in Plugins)
+    {
+      <li>
+        <a href="@plugin.Id"
+           class="devtools-nav-link"
+           data-active="@(IsActive(plugin) ? "true" : "false")"
+           aria-current="@(IsActive(plugin) ? "page" : null)"
+           data-plugin-id="@plugin.Id">
+          <PluginIcon Name="@plugin.Icon" />
+          <span>@plugin.DisplayName</span>
+        </a>
+      </li>
+    }
+  </ul>
+</nav>

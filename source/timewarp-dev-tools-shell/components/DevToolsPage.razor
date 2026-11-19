@@ -1,0 +1,39 @@
+@namespace TimeWarp.DevTools.Shell.Components
+@page "/"
+@page "/{PluginId}"
+@page "/{PluginId}/{*SubPath:nonfile}"
+
+@* nonfile: a deep path whose last segment has a file extension (_framework/blazor.web.js,
+   _content/... stylesheets) is never a plugin page, so framework and library assets keep their
+   routes. A single unknown segment renders the not-found panel. *@
+
+@code {
+  [Inject] private IDevToolsPluginRegistry Registry { get; set; } = null!;
+
+  /// <summary>Plugin id from the first route segment. Empty at "/".</summary>
+  [Parameter] public string? PluginId { get; set; }
+
+  /// <summary>Path below the plugin prefix.</summary>
+  [Parameter] public string? SubPath { get; set; }
+
+  private DevToolsPlugin? Plugin;
+
+  protected override void OnParametersSet() =>
+    Plugin = string.IsNullOrEmpty(PluginId) ? Registry.Default : Registry.Find(PluginId);
+}
+
+<PageTitle>@(Plugin?.DisplayName ?? "Not found") · @DevToolsShellInfo.ProductName</PageTitle>
+
+<DevToolsShell ActivePluginId="@Plugin?.Id">
+  @if (Plugin is null)
+  {
+    <section class="devtools-not-found" data-qa="plugin-not-found">
+      <h1>No plugin named <code>@PluginId</code></h1>
+      <p>Pick a plugin from the navigation.</p>
+    </section>
+  }
+  else
+  {
+    <PluginHost @key="Plugin.Id" Plugin="Plugin" SubPath="@SubPath" />
+  }
+</DevToolsShell>

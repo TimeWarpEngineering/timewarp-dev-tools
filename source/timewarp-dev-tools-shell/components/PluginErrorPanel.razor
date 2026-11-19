@@ -1,0 +1,19 @@
+@namespace TimeWarp.DevTools.Shell.Components
+
+@code {
+  /// <summary>The plugin that failed.</summary>
+  [Parameter, EditorRequired] public DevToolsPlugin Plugin { get; set; } = null!;
+
+  /// <summary>The exception the plugin threw.</summary>
+  [Parameter, EditorRequired] public Exception Exception { get; set; } = null!;
+
+  /// <summary>Re-renders the plugin.</summary>
+  [Parameter] public EventCallback OnRetry { get; set; }
+}
+
+<section class="plugin-error" role="alert" data-qa="plugin-error">
+  <h1 class="plugin-error-title">@Plugin.DisplayName stopped working</h1>
+  <p class="plugin-error-text">The plugin threw an exception. Navigation and the other plugins still work.</p>
+  <pre class="plugin-error-message" data-qa="plugin-error-message">@Exception.GetType().Name: @Exception.Message</pre>
+  <FluentButton Appearance="ButtonAppearance.Primary" OnClick="OnRetry" data-qa="plugin-error-retry">Retry</FluentButton>
+</section>

@@ -1,0 +1,25 @@
+.plugin-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--devtools-space-m);
+  padding: var(--devtools-space-l);
+  border: 1px solid var(--devtools-danger-border);
+  border-radius: var(--devtools-radius);
+  background: var(--devtools-danger-tint);
+}
+
+.plugin-error-title {
+  margin: 0;
+  font-size: var(--devtools-font-size-title);
+}
+
+.plugin-error-text {
+  margin: 0;
+}
+
+.plugin-error-message {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--devtools-font-mono);
+}

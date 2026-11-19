@@ -1,0 +1,36 @@
+@namespace TimeWarp.DevTools.Shell.Plugins.About
+
+@code {
+  [Inject] private AboutCatalog AboutCatalog { get; set; } = null!;
+
+  private AboutReport Report = null!;
+
+  protected override void OnInitialized() => Report = AboutCatalog.Read();
+}
+
+<section class="about" data-qa="about">
+  <h1 class="about-title">About @DevToolsShellInfo.ProductName</h1>
+  <p class="about-version">Shell version <span data-qa="shell-version">@Report.ShellVersion</span></p>
+  <table class="about-plugins" data-qa="about-plugins">
+    <thead>
+      <tr>
+        <th scope="col">Id</th>
+        <th scope="col">Name</th>
+        <th scope="col">Assembly</th>
+        <th scope="col">Version</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (AboutPluginEntry entry in Report.Plugins)
+      {
+        <tr data-plugin-id="@entry.Id">
+          <td>@entry.Id</td>
+          <td>@entry.Name</td>
+          <td>@entry.Assembly</td>
+          <td>@entry.Version</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+  <p class="about-endpoint">The same list as JSON: <a href="@AboutPlugin.PluginsEndpoint.TrimStart('/')" target="_blank">@AboutPlugin.PluginsEndpoint</a></p>
+</section>

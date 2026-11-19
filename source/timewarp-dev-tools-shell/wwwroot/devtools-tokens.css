@@ -1,0 +1,42 @@
+/* TimeWarp DevTools global tokens. Components read these from their isolated CSS.
+   body[data-theme="dark"] is set on first paint by devtools-theme.js and by FluentUI when the mode changes. */
+:root {
+  --devtools-space-xs: 2px;
+  --devtools-space-s: 6px;
+  --devtools-space-m: 12px;
+  --devtools-space-l: 20px;
+  --devtools-radius: 6px;
+  --devtools-nav-width: 220px;
+  --devtools-header-height: 48px;
+  --devtools-font-size-brand: 16px;
+  --devtools-font-size-title: 20px;
+  --devtools-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --devtools-surface: #ffffff;
+  --devtools-chrome: #f5f5f5;
+  --devtools-ink: #1b1b1f;
+  --devtools-ink-muted: #5c5c66;
+  --devtools-border: #dcdce0;
+  --devtools-hover: #e8e8ec;
+  --devtools-selected: #dde7f7;
+  --devtools-danger-border: #c50f1f;
+  --devtools-danger-tint: #fdf3f4;
+  background: var(--devtools-surface);
+  color: var(--devtools-ink);
+}
+
+body[data-theme="dark"] {
+  --devtools-surface: #1f1f23;
+  --devtools-chrome: #2a2a2f;
+  --devtools-ink: #f0f0f3;
+  --devtools-ink-muted: #a8a8b3;
+  --devtools-border: #3d3d45;
+  --devtools-hover: #34343b;
+  --devtools-selected: #263a5c;
+  --devtools-danger-border: #f1707b;
+  --devtools-danger-tint: #3b1f22;
+}

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Collection project: every *.cs here is also a standalone Jaribu runfile (dotnet run with the file option).
+    JARIBU_MULTI stops each file's top-level RunAllTests so the files share one Microsoft Testing
+    Platform host for dotnet test. FileBasedProgram lets the compiler accept the #! and #: lines.
+    The #:project and #:package lines are inert here; the references below are what resolve types.
+  -->
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
+    <DefineConstants>$(DefineConstants);JARIBU_MULTI</DefineConstants>
+    <Features>$(Features);FileBasedProgram</Features>
+    <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TimeWarp.Jaribu" />
+    <PackageReference Include="TimeWarp.Jaribu.TestingPlatform" />
+    <PackageReference Include="Shouldly" />
+    <PackageReference Include="bunit" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" />
+    <PackageReference Include="Microsoft.Playwright" />
+    <PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" />
+    <PackageReference Include="TimeWarp.Amuru" />
+    <PackageReference Include="TimeWarp.Amuru.Tools" />
+    <PackageReference Include="TimeWarp.Mediator" />
+    <PackageReference Include="TimeWarp.Mediator.Generators" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\source\timewarp-dev-tools-abstractions\timewarp-dev-tools-abstractions.csproj" />
+    <ProjectReference Include="..\..\source\timewarp-dev-tools-shell\timewarp-dev-tools-shell.csproj" />
+    <ProjectReference Include="..\..\source\timewarp-dev-tools-hosting\timewarp-dev-tools-hosting.csproj" />
+  </ItemGroup>
+</Project>
