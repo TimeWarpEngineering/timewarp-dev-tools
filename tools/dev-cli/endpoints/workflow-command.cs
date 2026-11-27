@@ -1,112 +1,169 @@
 #region Purpose
-// Executes the verify-only CI workflow, and skips it for a non-build pull request.
+// Mode-aware CI/CD pipeline for the TimeWarp.DevTools packages.
 #endregion
 #region Design
-// Verify-only scaffold: self-install -> clean -> build -> test.
-// Self-install uses the runfile because bin/dev is gitignored and missing on a
-// fresh CI checkout. Later steps use ./bin/dev (bin/dev.exe on Windows).
-// The build decision is PullRequestBuildClassifier.DecideAsync from
-// TimeWarp.Nuru.DevCli, the fleet rule (timewarp-nuru 595). A pull_request
-// whose every path is a declared non-build path skips self-install, clean,
-// build, and test; push, a local run, and anything the classifier cannot read
-// build. Repo additions go in .timewarp/dev.jsonc under pullRequestBuild, not
-// in this file. The dev-workflow-classifier audit check looks for the call.
-// Repos that publish NuGet replace this file with the Nuru promotion
-// pipeline. This scaffold does not pack, attest, or promote.
+// Nuru promotion pipeline (replaces the verify-only scaffold, task 004).
+// PR/merge: clean → build → test → pack. Pack writes the IsPackable set
+// (TimeWarp.DevTools.Abstractions, .Shell, .Hosting) to artifacts/packages and
+// verifies file names with CiRunPromotion; workflow.yml uploads that folder as
+// the Packages-<run> artifact.
+// Release: tag-gate → check-version → locate-run → download-artifact → verify → push.
+// Release promotes the CI Packages-* artifact (Nuru 458 build-once/promote) — no rebuild.
+// Push target is nuget.org via the OIDC key workflow.yml passes as --api-key.
+// workflow_dispatch without --mode stays merge and does not publish.
+// Handlers run in-process so CI needs no ./bin/dev. dev release remains the human
+// tag and GitHub Release cut; this command is what Actions calls.
+// The PR/merge path first calls the shared PullRequestBuildClassifier
+// (TimeWarp.Nuru.DevCli, timewarp-nuru 595). On a pull request whose diff
+// touches only declared non-build paths (kanban, documentation, ...) it prints
+// the classifier's message and exits 0 without clean, build, test, or pack.
+// Push, release, dispatch, and a local run always build. workflow.yml has no
+// paths filter on pull_request, so every pull request reports CI. This repo's
+// additions to the rule go in .timewarp/dev.jsonc under pullRequestBuild; the
+// rule is not copied here. The dev-workflow-classifier audit check looks for the call.
 #endregion
 
 namespace DevCli.Commands;
 
-[NuruRoute("workflow", Description = "Execute full CI workflow")]
-public sealed class WorkflowCommand : ICommand<Unit>
+[NuruRoute("workflow", Description = "Execute full CI/CD pipeline (mode-aware)")]
+public sealed partial class WorkflowCommand : ICommand<Unit>
 {
-  internal sealed class Handler : IRequestHandler<WorkflowCommand, Unit>
+  private const string NuGetOrgSource = "https://api.nuget.org/v3/index.json";
+
+  [Option("mode", "m", Description = "CI mode: pr, merge, or release (auto-detected from GITHUB_EVENT_NAME)")]
+  public string? Mode { get; set; }
+
+  [Option("api-key", "k", Description = "NuGet API key for publishing (from OIDC Trusted Publishing)")]
+  public string? ApiKey { get; set; }
+
+  internal sealed partial class Handler : IRequestHandler<WorkflowCommand, Unit>
   {
     private readonly ITerminal Terminal;
+    private readonly IRepoCleanService RepoCleanService;
+    private readonly NuGetVersionService NuGetVersionService;
+    private readonly IRepoConfigService RepoConfigService;
+    private readonly IPackableProjectService PackableProjectService;
     private CancellationToken Ct;
-    private string RepoRoot = null!;
-    private string DevBin = null!;
+    private string? ApiKey;
 
-    public Handler(ITerminal terminal)
+    public Handler
+    (
+      ITerminal terminal,
+      IRepoCleanService repoCleanService,
+      NuGetVersionService nuGetVersionService,
+      IRepoConfigService repoConfigService,
+      IPackableProjectService packableProjectService
+    )
     {
       Terminal = terminal;
+      RepoCleanService = repoCleanService;
+      NuGetVersionService = nuGetVersionService;
+      RepoConfigService = repoConfigService;
+      PackableProjectService = packableProjectService;
     }
 
     public async ValueTask<Unit> Handle(WorkflowCommand command, CancellationToken ct)
     {
       Ct = ct;
+      ApiKey = command.ApiKey;
 
-      if (!FindRepoRoot()) return Unit.Value;
-
-      PullRequestBuildDecision decision = await PullRequestBuildClassifier.DecideAsync(RepoRoot, ct);
-      Terminal.WriteLine(decision.Message);
-      if (!decision.RequiresBuild)
+      string? eventName = Environment.GetEnvironmentVariable("GITHUB_EVENT_NAME");
+      CiMode mode;
+      try
       {
-        Terminal.WriteLine("\nWorkflow completed successfully!".Green());
+        mode = CiModeDetector.DetermineMode(command.Mode, eventName);
+      }
+      catch (ArgumentException exception)
+      {
+        Terminal.WriteErrorLine(exception.Message);
+        Environment.ExitCode = 1;
         return Unit.Value;
       }
 
-      Terminal.WriteLine("Pipeline: self-install -> clean -> build -> test");
-      if (!await SelfInstallAsync()) return Unit.Value;
-      if (!await RunStepAsync("clean", "Clean failed!")) return Unit.Value;
-      if (!await RunStepAsync("build", "Build failed!")) return Unit.Value;
-      if (!await RunStepAsync("test", "Tests failed!")) return Unit.Value;
+      if (string.IsNullOrEmpty(command.Mode))
+      {
+        string displayEventName = eventName ?? "(not set)";
+        Terminal.WriteLine($"Detected GITHUB_EVENT_NAME: {displayEventName} -> Mode: {mode}");
+      }
 
-      Terminal.WriteLine("\nWorkflow completed successfully!".Green());
+      Terminal.WriteLine($"\nCI/CD Pipeline — Mode: {mode}\n");
+
+      if (mode == CiMode.Release)
+      {
+        await RunReleaseAsync();
+      }
+      else
+      {
+        await RunPrAsync();
+      }
+
       return Unit.Value;
     }
 
-    private bool FindRepoRoot()
+    private async Task RunPrAsync()
     {
-      string? root = Git.FindRoot();
-      if (root is null)
+      Environment.ExitCode = 0;
+
+      string? repoRoot = Git.FindRoot();
+      if (repoRoot is null)
       {
-        Terminal.WriteErrorLine("Error: could not find repository root.");
-        Environment.ExitCode = 1;
+        AbortPipeline("could not find the git repository root");
+        return;
+      }
+
+      PullRequestBuildDecision decision = await PullRequestBuildClassifier.DecideAsync(repoRoot, Ct);
+      Terminal.WriteLine(decision.Message);
+      if (!decision.RequiresBuild)
+      {
+        Terminal.WriteLine("\nPipeline SUCCEEDED (build and test skipped)".Green());
+        return;
+      }
+
+      Terminal.WriteLine("Pipeline: clean → build → test → pack\n");
+
+      if (!await RunStepAsync("Clean", new CleanCommand.Handler(Terminal, RepoCleanService).Handle(new CleanCommand(), Ct)))
+      {
+        return;
+      }
+
+      if (!await RunStepAsync("Build", new BuildCommand.Handler(Terminal).Handle(new BuildCommand(), Ct)))
+      {
+        return;
+      }
+
+      if (!await RunStepAsync("Test", new TestCommand.Handler(Terminal).Handle(new TestCommand(), Ct)))
+      {
+        return;
+      }
+
+      if (!await RunStepAsync("Pack", new PackCommand.Handler(Terminal, PackableProjectService).Handle(new PackCommand(), Ct)))
+      {
+        return;
+      }
+
+      Terminal.WriteLine("\nPipeline SUCCEEDED".Green());
+    }
+
+    private async Task<bool> RunStepAsync(string stepName, ValueTask<Unit> step)
+    {
+      await step;
+
+      if (Environment.ExitCode != 0)
+      {
+        Terminal.WriteErrorLine($"\nPipeline FAILED — {stepName} failed".Red());
         return false;
       }
 
-      RepoRoot = root;
-      string binaryName = OperatingSystem.IsWindows() ? "dev.exe" : "dev";
-      DevBin = Path.Combine(RepoRoot, "bin", binaryName);
-      Terminal.WriteLine("Starting CI workflow...");
       return true;
     }
 
-    private async Task<bool> SelfInstallAsync()
+    private void AbortPipeline(string reason)
     {
-      int exitCode = await DotNet.Run()
-        .WithFile("tools/dev-cli/dev.cs")
-        .WithArguments("self-install")
-        .WithWorkingDirectory(RepoRoot)
-        .WithNoValidation()
-        .RunAsync(Ct);
-
-      if (exitCode != 0)
-      {
-        Terminal.WriteErrorLine("Self-install failed!".Red());
-        Environment.ExitCode = exitCode;
-        return false;
-      }
-
-      return true;
-    }
-
-    private async Task<bool> RunStepAsync(string subcommand, string failureMessage)
-    {
-      int exitCode = await Shell.Builder(DevBin)
-        .WithArguments(subcommand)
-        .WithNoValidation()
-        .RunAsync(Ct);
-
-      if (exitCode != 0)
-      {
-        Terminal.WriteErrorLine(failureMessage.Red());
-        Environment.ExitCode = exitCode;
-        return false;
-      }
-
-      return true;
+      Terminal.WriteLine("");
+      Terminal.WriteLine("===============================================================================");
+      Terminal.WriteLine($"  Pipeline ABORTED — {reason}");
+      Terminal.WriteLine("===============================================================================");
+      Environment.ExitCode = 1;
     }
   }
 }
