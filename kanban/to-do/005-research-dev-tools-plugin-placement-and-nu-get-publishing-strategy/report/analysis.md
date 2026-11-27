@@ -141,3 +141,54 @@ timewarp-dev-tools (Abstractions + Shell + Hosting + State plugin + Repo Explore
 - `timewarp-ganda`: `kanban/in-progress/687-dev-tools-factory-plugin-live-view-of-ganda-work/task.md`
 - `timewarp-ganda`: `kanban/backlog/687-002-board-plugin-and-a-ganda-dev-tools-host-with-the-live-board-view/task.md`
 - `timewarp-jenzi`: `kanban/done/013-research-cross-repo-kanban-board-and-feedback-intake-as-dev-tools-plugins/report/analysis.md`
+
+## Advisor Review Verdicts (2026-11-27)
+
+Both read-only advisor consults ran independently (`--profile advisor-claude`, `--effort high`, `--no-cache`) against `task.md` and this report. They reached unanimous agreement on all four questions and added two shared guardrails (lightweight `schemaVersion` on wire payloads, and making `timewarp-dev-tools` `PUBLIC` after a git-history secret scan before cutting `1.0.0-beta.1`).
+
+### Claude Opus 5.5 (`claude-opus-5-5`)
+
+> **Decision:**
+> 1. **Split.** Move the viewer, `TimeWarp.DevTools.State`, into `timewarp-dev-tools`. The emitters (`Export`/`Wasm`) stay in `timewarp-state`. Reject (a): it keeps the cycle problem. Reject (b): the Shell uses State for its own `ShellState` (`features/shell/shell-state.cs`), so removing it costs a rewrite and saves nothing once the plugin moves.
+> 2. **Version the wire format, cheaply.** Add an integer `schemaVersion` to the `/ingest/manifest` and `/ingest/spans` payloads. The viewer ignores fields it doesn't know. Put the span tag names in the `Export` package as public constants. Don't build a full schema registry.
+> 3. **Thin host owned by the app.** The template ships a small host project that calls `AddTimeWarpDevTools<TProject>()`. Don't ship a pre-packaged default host. Retire `State.DevTools.App` and `State.DevTools.Hosting` once the plugin matches them.
+> 4. **Publish to nuget.org, but make the repo public first.**
+>
+> **Rationale:**
+> - After the split, dependencies only run one way (`timewarp-state` ← `timewarp-dev-tools` ← consumers), and the pre-packaged host has nothing left to justify it.
+> - The viewer gets the wire types from the `Export` package, so most drift shows up as a compile error. The version number covers what the compiler can't see: an app running an older emitter.
+> - We are the main consumer, and a pre-packaged host would bring back the binary-pin coupling that the split removes.
+> - Packages published to nuget.org can be unlisted but never deleted. A public package whose source repo is private is incoherent: `RepositoryUrl` returns 404 and SourceLink is broken for public users. The template is public, so GitHub Packages would mean moving feeds later.
+>
+> **Blind spots:**
+> - Any app that loads the Shell plus several plugins resolves `TimeWarp.State` to the highest version referenced. A breaking State change can then fail at runtime in a consumer.
+> - I don't know whether nuget.org trusted publishing (OIDC) works from a private repo. The `mode=probe` run will answer that. Going public first makes it moot.
+> - Changes to `StateManifest` become releases across two repos, ordered State first and DevTools second.
+>
+> **Constraints:**
+> - Before going public, scan the full git history for secrets, not just the `kanban/` text. Names of private repos and their task ids are fine to leave.
+> - The Abstractions package keeps its rule of no `TimeWarp.State` dependency, and its test stays.
+> - `ganda` plugins stay in `timewarp-ganda`.
+>
+> `ORACLE_RESULT: split=move-viewer-to-dev-tools; wire=add-schemaVersion+tag-constants; host=thin-app-owned; feed=nuget.org-after-repo-public`
+
+### Claude Fable 5.1 (`claude-fable-5-1`)
+
+> **Decision:** Accept the Emitter/Viewer split and keep `nuget.org`. Add two guardrails: version the wire contract, and flip the repo public before the first beta.
+>
+> **Rationale:**
+> 1. **Q1, placement.** Moving the viewer into `timewarp-dev-tools` wins. Option (a) keeps the diamond and drags FluentUI into a core library repo. Option (b) is a false escape: the Shell uses `TimeWarp.State` for its own chrome state, and any State-aware viewer hosted by the Shell reintroduces the pin anyway. The only coupling that must stay out of `timewarp-dev-tools` is `InternalsVisibleTo`, and the analysis confirms there is none. Rule to record: a plugin lives in the viewer repo when every input it reads is public and published; it lives in the domain repo when it needs project references or internals.
+> 2. **Q2, wire contract.** Not stable enough by inheritance. Two repos on independent release cadences need an explicit `schemaVersion` field on `/ingest/manifest` and `/ingest/spans`, with the viewer accepting N and N-1. Keep the DTOs in `TimeWarp.State.DevTools.Export` as the single source and have the viewer reference that package rather than redeclaring shapes.
+> 3. **Q3, host composition.** Thin app-owned host in the template, no packaged default app. A pre-packaged host would resurrect the pin problem and the `-App` package you are retiring. The template already has an AppHost, so one small host project costs little.
+> 4. **Q4, feed and visibility.** Publish to `nuget.org`, but make the repo public first. OIDC trusted publishing works for private repos, yet SourceLink and `RepositoryUrl` resolve to 404s, and public `timewarp-architecture` consumers deserve browsable source. The kanban prose names private repos and task ids without secrets, which is fine.
+>
+> **Blind spots:**
+> - Emitter version skew: an app on State 12.x emitting to a viewer built against 13.x. Schema versioning covers this; test it.
+> - Retiring `TimeWarp.State.DevTools.App` orphans `timewarp-architecture` until the host project lands. Sequence those tasks.
+>
+> **Constraints:**
+> - `TimeWarp.DevTools.Abstractions` keeps zero `TimeWarp.State` dependency.
+> - `timewarp-state` never references `timewarp-dev-tools`.
+> - Viewer references emitters only as published NuGet.
+>
+> `ORACLE_RESULT: ACCEPT split + nuget.org; add wire schemaVersion; public repo before first beta; thin host in template.`
