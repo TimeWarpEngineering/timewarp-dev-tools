@@ -1,6 +1,10 @@
+// #region Purpose
 // TimeWarp DevTools first-paint theme. Loaded as the first child of <body>, before any content.
+// #endregion
+// #region Design
 // Sets body[data-theme] to the mode FluentUI stored (light or dark), else to the browser
 // preference. It never stores a mode, so with nothing stored FluentUI keeps following the OS.
+// #endregion
 (function () {
   var mode = null;
   try {

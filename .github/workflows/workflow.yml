@@ -1,17 +1,17 @@
 name: CI/CD
 
 # Thin trigger. The pipeline lives in C# — invoke the runfile, not ./bin/dev.
-# bin/dev is gitignored, so a fresh CI checkout does not have it. The factory
-# `workflow` command self-installs first, then runs ./bin/dev clean|build|test.
-# push/PR: verify (and pack if the repo's workflow command packs).
+# bin/dev is gitignored, so a fresh CI checkout does not have it. The `workflow`
+# command runs clean, build, test, and pack in-process.
+# push/PR: clean, build, test, pack (the Packages-* artifact is that nupkg set).
 # release: promote the CI-built Packages-* artifact (no rebuild).
 # Publishing uses OIDC Trusted Publishing (no stored API key).
 on:
   push:
     branches: [ master, main ]
     # A kanban-only push to master or main does not rebuild. Pull requests have
-    # no paths filter. The factory workflow command skips self-install, clean,
-    # build, and test on a pull request whose every path is a declared
+    # no paths filter. The workflow command skips clean, build, test, and pack
+    # on a pull request whose every path is a declared
     # non-build path (PullRequestBuildClassifier from TimeWarp.Nuru.DevCli).
     paths:
       - 'source/**'
