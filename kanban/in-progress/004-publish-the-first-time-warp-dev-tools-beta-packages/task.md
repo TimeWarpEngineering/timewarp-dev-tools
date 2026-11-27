@@ -54,6 +54,9 @@ Acceptance for this walk:
   `UseTelemetry` to `dev.cs` and a Purpose/Design region to `devtools-theme.js`.
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 5a7b2fa2-7f44-470c-b629-ec86571abf38, max-turns 500, Done — 2026-11-27T03:46:05Z
 - Implement oracle: implemented by implementer-claude (claude, vendor anthropic, model claude-opus-5-5, response model claude-opus-5-5), session 24db9363-ff79-4c4e-af0d-9e12aca07de9, max-turns 500, Done — 2026-11-27T03:47:07Z
+- Reviewer: grok session 185bd6c8-ea73-4d0c-9158-2644248b7115 (ganda session 3666215, 2026-11-27), effort 3, roster general, round 1. No findings.
+- Review oracle: review by reviewer-grok (grok, vendor xai, model grok-4.7), session 185bd6c8-ea73-4d0c-9158-2644248b7115, max-turns uncapped (budget turn cap 200), artifacts general.md, merged.md, disposition.md — 2026-11-27
+- Review oracle: review by reviewer-cursor (cursor, vendor xai, model grok-4.7-high), session not reported, max-turns uncapped (no --max-turns flag; bound 200), artifacts general.md, merged.md, disposition.md — 2026-11-27T03:56:22Z
 
 ## Results
 
@@ -96,6 +99,17 @@ Acceptance for this walk:
 - Expect: `workflow [--mode,-m {mode}] [--api-key,-k {apikey}]`.
 - After merge: the master push CI run uploads `Packages-<run>` holding the three nupkgs; then the
   remaining checklist items (probe, `dev release --dry-run`, release on Steven's ask) from origin-home.
+
+### Review disposition
+
+- Rounds: 1. Roster: general. Effort: 3 (by-diff, 1030 lines).
+- Final counts (round 1): bug 0 open / 0 fixed / 0 wontfix; suggestion 0; nit 0.
+- Disposition: clean. No findings. No wontfix. No escalation. The implementer restatement matches the task (this walk packs in CI; nuget.org publish stays on the post-merge checklist).
+- Paths: `review/review-framework.md`, `review/round-1/merged.md`, `review/disposition.md`.
+
+## Review
+
+- Round 1: Done
 
 ## Notes
 
